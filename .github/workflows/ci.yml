@@ -17,12 +17,15 @@ jobs:
           - os: windows-latest
             artifact_name: matrix-forge-windows
             executable_path: dist/matrix-forge.exe
+            is_mac: false
           - os: ubuntu-latest
             artifact_name: matrix-forge-linux
             executable_path: dist/matrix-forge
+            is_mac: false
           - os: macos-latest
             artifact_name: matrix-forge-mac
             executable_path: dist/matrix-forge.app
+            is_mac: true
 
     steps:
       - name: Check out repository
@@ -39,38 +42,38 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install linux dependnecies
+      - name: Install linux dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y libegl1 libgl1-mesa-glx libxkbcommon-x11-0 libxcb-cursor0
 
-      - name: Install project dependnecies
+      - name: Install project dependencies
         run: uv pip install . pyinstaller
 
       - name: Build 
         run: uv run pyinstaller --noconsole --name=matrix-forge src/matrix_forge/app.py
 
       - name: Zip macOS bundle
-        if: matrix.os == 'macos-latest'
+        if: matrix.matrix.os == 'macos-latest' || matrix.is_mac == true
         run: |
           cd dist
           zip -r ../matrix-forge-mac.zip matrix-forge.app
           cd ..
 
-      - name: Upload artificats
-        uses: actions/artifacts@v4
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
           path: |
-            ${{ matrix.os == 'macos-latest' && 'matrix-forge-mac.zip' || matrix.executable_path }}
+            ${{ matrix.is_mac == true && 'matrix-forge-mac.zip' || matrix.executable_path }}
 
   release:
     name: Create release
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Download artificats
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
