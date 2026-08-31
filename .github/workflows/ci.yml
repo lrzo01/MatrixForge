@@ -49,13 +49,15 @@ jobs:
           sudo apt-get install -y libegl1 libgl1-mesa-glx libxkbcommon-x11-0 libxcb-cursor0
 
       - name: Install project dependencies
-        run: uv pip install . pyinstaller
+        run: |
+          uv venv
+          uv pip install . pyinstaller
 
       - name: Build 
         run: uv run pyinstaller --noconsole --name=matrix-forge src/matrix_forge/app.py
 
       - name: Zip macOS bundle
-        if: matrix.matrix.os == 'macos-latest' || matrix.is_mac == true
+        if: matrix.os == 'macos-latest' || matrix.is_mac == true
         run: |
           cd dist
           zip -r ../matrix-forge-mac.zip matrix-forge.app
