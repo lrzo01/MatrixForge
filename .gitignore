@@ -1,11 +1,30 @@
-# Python-generated files
-__pycache__/
-*.py[oc]
+*.py[cod]
+*$py.class
+*.so
+.Python
 build/
 dist/
 wheels/
-*.egg-info
+share/python-wheels/
+*.egg-info/
+.eggs/
 
-# Virtual environments
-.venv
-.vscode
+.venv/
+venv/
+ENV/
+env/
+.python-version
+
+*.manifest
+*.spec
+
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+.DS_Store
+Thumbs.db
