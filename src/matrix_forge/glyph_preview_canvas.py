@@ -11,11 +11,9 @@ class FontPreviewCanvas(QWidget):
         self.font: Font | None = None
         self.text = ""
 
-        self.setMinimumSize(500, 150)
-
         self.on_colour = QColor("orange")
         self.off_colour = QColor("black")
-        self.outline_colour = QColor("grey")
+        self.outline_colour = QColor("orange")
 
     def set_font(self, font: Font | None) -> None:
         self.font = font
