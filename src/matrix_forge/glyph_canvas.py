@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QPainter, QColor, QPen
-from PySide6.QtCore import QRectF, Qt
+from PySide6.QtCore import QRectF, Qt, QPoint
 from .lib import Glyph
 
 class GlyphCanvas(QWidget):
@@ -13,11 +13,29 @@ class GlyphCanvas(QWidget):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
-            self.draw_value = 1
-            self.drawing = True
-            self.draw_at_mouse(event)
+            if event.modifiers() and Qt.KeyboardModifier.ShiftModifier and self.glyph:
+                x = round(event.position().x() / self.cell_length)
+                y = round(event.position().y() / self.cell_length)
+
+                if 0 <= x <= self.glyph.width:
+                    if not y in self.glyph.font.markers:
+                        self.glyph.font.markers.append(y)
+                self.update()
+            else:
+                self.draw_value = 1
+                self.drawing = True
+                self.draw_at_mouse(event)
 
         elif event.button() == Qt.MouseButton.RightButton:
+            if event.modifiers() and Qt.KeyboardModifier.ShiftModifier and self.glyph:
+                x = round(event.position().x() / self.cell_length)
+                y = round(event.position().y() / self.cell_length)
+                
+                if 0 <= x <= self.glyph.width:
+                    if y in self.glyph.font.markers:
+                        self.glyph.font.markers.remove(y)
+                self.update()
+
             self.draw_value = 0
             self.drawing = True
             self.draw_at_mouse(event)
@@ -37,6 +55,7 @@ class GlyphCanvas(QWidget):
         y = int(event.position().y() / self.cell_length)
 
         self.glyph.write(x, y, self.draw_value)
+
         self.update()
 
     def paintEvent(self, event):
@@ -73,3 +92,14 @@ class GlyphCanvas(QWidget):
                         painter.setBrush(QColor("black"))
 
                     painter.drawEllipse(QRectF(dot_x, dot_y, dot_size, dot_size))
+
+            # draw the markers
+
+            for marker in self.glyph.font.markers:
+                painter.setBrush(QColor("white"))
+                painter.setPen(QPen(QColor("white"), 1))
+
+                startPoint = QPoint(0, int(marker * self.cell_length))
+                endPoint = QPoint(int(self.glyph.width * self.cell_length), int(marker * self.cell_length))
+
+                painter.drawLine(startPoint, endPoint)

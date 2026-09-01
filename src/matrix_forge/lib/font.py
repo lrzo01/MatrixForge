@@ -5,12 +5,13 @@ if typing.TYPE_CHECKING:
 # to prevent circular dependency!
 
 class Font:
-    def __init__(self, name: str, height: int, default_spacing=1, default_width=8):
+    def __init__(self, name: str, height: int, default_spacing=1, default_width=8, markers=[]):
         self.name = name
-        self._height = height  # Track internally
+        self._height = height  
         self.default_spacing = default_spacing
         self.default_width = default_width
         self.glyphs: list['Glyph'] = []
+        self.markers = markers
 
     @property
     def height(self) -> int:
