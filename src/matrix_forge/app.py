@@ -146,8 +146,13 @@ def initialise_new_font() -> Font:
 def register_font_glyphs_to_window(window: MainWindow, font: Font) -> None:
     window.ui.glyphSelectorList.clear()
 
+    # checklist logic used to be here but it broke
+    # :-( lmao
     for glyph in font.glyphs:
-        window.ui.glyphSelectorList.addItem(glyph.name)
+        if glyph.blank:
+             window.ui.glyphSelectorList.addItem(f"{glyph.name}")
+        else:
+             window.ui.glyphSelectorList.addItem(f"{glyph.name}")
 
 
 def selected_glyph(window: MainWindow, glyph: Glyph | None):

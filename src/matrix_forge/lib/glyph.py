@@ -8,6 +8,12 @@ class Glyph:
         self.grid = [[0] * width for _ in range(font.height)]
         font.glyphs.append(self)
 
+    @property  
+    def blank(self) -> bool:
+        if self.grid == [[0] * self.width for _ in range(self.font.height)]:
+            return True
+        return False
+
     @property
     def width(self) -> int:
         return self._width
