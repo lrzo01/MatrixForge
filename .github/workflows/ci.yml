@@ -24,7 +24,7 @@ jobs:
             is_mac: false
           - os: macos-latest
             artifact_name: matrix-forge-mac
-            executable_path: dist/matrix-forge.app
+            executable_path: matrix-forge-mac.zip
             is_mac: true
 
     steps:
@@ -56,9 +56,8 @@ jobs:
       - name: Build 
         run: uv run pyinstaller --noconsole --name=matrix-forge run.py
 
-
       - name: Zip macOS bundle
-        if: matrix.os == 'macos-latest' || matrix.is_mac == true
+        if: matrix.is_mac == true
         run: |
           cd dist
           zip -r ../matrix-forge-mac.zip matrix-forge.app
@@ -68,8 +67,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: |
-            ${{ matrix.is_mac == true && 'matrix-forge-mac.zip' || matrix.executable_path }}
+          path: ${{ matrix.executable_path }}
 
   release:
     name: Create release
