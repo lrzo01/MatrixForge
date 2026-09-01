@@ -54,7 +54,8 @@ jobs:
           uv pip install . pyinstaller
 
       - name: Build 
-        run: uv run pyinstaller --noconsole --name=matrix-forge src/matrix_forge/app.py
+        run: uv run pyinstaller --noconsole --name=matrix-forge run.py
+
 
       - name: Zip macOS bundle
         if: matrix.os == 'macos-latest' || matrix.is_mac == true
