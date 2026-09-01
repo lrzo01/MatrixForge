@@ -393,5 +393,12 @@ class Ui_MainWindow(object):
         self.menuGlyph.setTitle(QCoreApplication.translate("MainWindow", u"Glyph", None))
         self.menuDelete.setTitle(QCoreApplication.translate("MainWindow", u"Delete", None))
         self.menuPreview.setTitle(QCoreApplication.translate("MainWindow", u"Preview", None))
+        self.actionOpenPreview = QAction(MainWindow)
+        self.actionOpenPreview.setObjectName("actionOpenPreview")
+        self.menuPreview.addAction(self.actionOpenPreview)
+        self.actionOpenPreview.setText(
+            QCoreApplication.translate("MainWindow", "Open preview", None)
+        )
+        
     # retranslateUi
 

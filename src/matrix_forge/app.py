@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
 
 from .lib import Font, Glyph, json_to_font, font_to_json
 from .ui_mainwindow import Ui_MainWindow
-
+from .ui_characterpreview import Ui_Dialog
 
 DEFAULT_GLYPHS = [
     "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
@@ -194,6 +194,7 @@ def save_font_to_path(
         window.setWindowTitle(
             f"{window.font.name} — {os.path.basename(file_path)}"
         )
+        
         return True
     except (OSError, TypeError, ValueError) as error:
         if show_errors:
@@ -254,6 +255,7 @@ def trigger_open(window: MainWindow):
 
     window.autosave_timer.stop()
     window.font = opened_font
+    window.preview_ui.graphicsView.set_font(window.font)
     window.current_file = file_path
     window.undo_stack.clear()
     window.redo_stack.clear()
@@ -312,11 +314,6 @@ def handle_glyph_name_edit(window: MainWindow, new_text: str):
     new_text = new_text.strip()
 
     if font is None or current_glyph is None or current_item is None:
-        return
-
-    if not new_text:
-        show_error(window, "Invalid glyph", "The glyph name cannot be empty")
-        window.ui.identiferCharBox.setText(current_glyph.name)
         return
 
     if current_glyph.name == new_text:
@@ -379,10 +376,6 @@ def trigger_add_glyph(window: MainWindow):
 
     new_character = character_input.text().strip()
     new_width = width_spin.value()
-
-    if not new_character:
-        show_error(window, "Invalid glyph", "The glyph name cannot be empty")
-        return
 
     if any(glyph.name == new_character for glyph in font.glyphs):
         show_error(
@@ -507,15 +500,33 @@ def connect_signals(window: MainWindow):
     )
     window.ui.actionOpen.triggered.connect(lambda: trigger_open(window))
 
+    window.ui.actionOpenPreview.triggered.connect(lambda: trigger_preview(window))
+
+def trigger_preview(window: MainWindow) -> None:
+    window.preview_window.show()
+    
 def main() -> None:
     app = QApplication(sys.argv)
     window = MainWindow()
 
     window.setWindowTitle("New font")
 
+    window.preview_window = QDialog(window)
+    window.preview_ui = Ui_Dialog()
+    window.preview_ui.setupUi(window.preview_window)
+
+    window.preview_window.resize(800, 250)
+    window.preview_window.setMinimumSize(500, 180)
+    window.preview_window.setWindowTitle("Font preview")
+    window.preview_ui.lineEdit.textEdited.connect(lambda new_text: window.preview_ui.graphicsView.set_text(new_text))
+
+    print(type(window.preview_ui.graphicsView))
+    print(window.preview_ui.graphicsView.size())
     window.font = initialise_new_font()
     window.refresh_font_controls()
     connect_signals(window)
+
+    window.preview_ui.graphicsView.set_font(window.font)
 
     window.show()
     sys.exit(app.exec())
