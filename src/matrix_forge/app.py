@@ -368,6 +368,12 @@ def trigger_add_glyph(window: MainWindow):
     width_layout.addWidget(width_spin)
     main_layout.addLayout(width_layout)
 
+    duplicate_bitmap_layout = QHBoxLayout()
+    duplicate_bitmap_layout.addWidget(QLabel("Duplicate bitmap of"))
+    duplicate_bitmap_input = QLineEdit()
+    duplicate_bitmap_layout.addWidget(duplicate_bitmap_input)
+    main_layout.addLayout(duplicate_bitmap_layout)
+
     buttons = QDialogButtonBox(
         QDialogButtonBox.StandardButton.Ok
         | QDialogButtonBox.StandardButton.Cancel
@@ -380,6 +386,7 @@ def trigger_add_glyph(window: MainWindow):
         return
 
     new_character = character_input.text().strip()
+    glyph_to_copy = duplicate_bitmap_input.text().strip()
     new_width = width_spin.value()
 
     if any(glyph.name == new_character for glyph in font.glyphs):
@@ -390,8 +397,25 @@ def trigger_add_glyph(window: MainWindow):
         )
         return
 
+    glyph_to_copy_obj = None
+
+    for glyph in font.glyphs:
+        if glyph.name == glyph_to_copy:
+            glyph_to_copy_obj = glyph
+
+    if glyph_to_copy_obj == None and glyph_to_copy != "":
+        show_error(
+            window,
+            "Unknow glyph to copy from",
+            f"The glyph '{glyph_to_copy}' is not within the font {font.name}" 
+        )
+
     new_glyph = Glyph(new_character, font.height, font)
-    new_glyph.width = new_width
+    set_width = new_width
+    if not glyph_to_copy == "":
+        set_width = glyph_to_copy_obj.width
+        new_glyph.grid = copy.deepcopy(glyph_to_copy_obj.grid)
+    new_glyph.width = set_width
 
     register_font_glyphs_to_window(window, font)
     matching_items = window.ui.glyphSelectorList.findItems(
