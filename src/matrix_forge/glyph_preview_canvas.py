@@ -4,6 +4,7 @@ from PySide6.QtWidgets import QWidget
 
 from .lib import Font, Glyph
 
+
 class FontPreviewCanvas(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -21,7 +22,6 @@ class FontPreviewCanvas(QWidget):
 
     def set_text(self, text: str) -> None:
         self.text = text
-        print("Text Updated")
         self.update()
 
     def find_glyph(self, character: str) -> Glyph | None:
@@ -34,29 +34,60 @@ class FontPreviewCanvas(QWidget):
 
         return None
 
+    def _resolve_glyphs(self) -> list[Glyph | None]:
+        if self.font is None or not self.text:
+            return []
+
+        resolved: list[Glyph | None] = []
+        in_identifier = False
+        current_token = ""
+
+        for char in self.text:
+            if char == "%":
+                if not in_identifier:
+                    in_identifier = True
+                    current_token = "%"
+                else:
+                    current_token += "%"
+                    in_identifier = False
+                    resolved.append(self.find_glyph(current_token))
+                    current_token = ""
+            elif in_identifier:
+                current_token += char
+            else:
+                resolved.append(self.find_glyph(char))
+
+        if in_identifier and current_token:
+            for char in current_token:
+                resolved.append(self.find_glyph(char))
+
+        return resolved
+
     def text_width(self) -> int:
         if self.font is None or not self.text:
             return 0
 
-        width = 0
+        glyphs = self._resolve_glyphs()
+        if not glyphs:
+            return 0
 
-        for index, character in enumerate(self.text):
-            glyph = self.find_glyph(character)
-
+        total_width = 0
+        for index, glyph in enumerate(glyphs):
             if glyph is not None:
-                width += glyph.width
+                total_width += glyph.width
             else:
-                width += self.font.default_width
+                total_width += self.font.default_width
 
-            if index < len(self.text) - 1:
-                width += self.font.default_spacing
+            if index < len(glyphs) - 1:
+                total_width += self.font.default_spacing
 
-        return width
+        return total_width
 
     def paintEvent(self, event) -> None:
         if self.font is None or not self.text:
             return
 
+        glyphs = self._resolve_glyphs()
         matrix_width = self.text_width()
         matrix_height = self.font.height
 
@@ -79,31 +110,8 @@ class FontPreviewCanvas(QWidget):
         painter.setPen(QPen(self.outline_colour, 1))
 
         cursor_x = origin_x
-        producingIdentiferWord = False
-        identifierWord = ""
 
-        for character in self.text:
-            if character == "%" and not producingIdentiferWord:
-                producingIdentiferWord = True
-                identifierWord = "%"
-                print("Producing identifier word")
-                continue
-
-            if producingIdentiferWord and not character == "%":
-                print(f"Adding identifier {character} to {identifierWord}")
-                identifierWord = identifierWord + character
-                continue
-
-            glyph = self.find_glyph(character)
-
-            if character == "%" and producingIdentiferWord:
-                identifierWord = identifierWord + "%"
-                print(f"Identfier word produced {identifierWord}")
-                producingIdentiferWord = False
-                glyph = self.find_glyph(identifierWord)
-                identifierWord = ""
-
-
+        for glyph in glyphs:
             if glyph is None:
                 cursor_x += (
                     self.font.default_width + self.font.default_spacing
