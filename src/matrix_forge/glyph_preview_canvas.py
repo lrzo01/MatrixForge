@@ -79,9 +79,30 @@ class FontPreviewCanvas(QWidget):
         painter.setPen(QPen(self.outline_colour, 1))
 
         cursor_x = origin_x
+        producingIdentiferWord = False
+        identifierWord = ""
 
         for character in self.text:
+            if character == "%" and not producingIdentiferWord:
+                producingIdentiferWord = True
+                identifierWord = "%"
+                print("Producing identifier word")
+                continue
+
+            if producingIdentiferWord and not character == "%":
+                print(f"Adding identifier {character} to {identifierWord}")
+                identifierWord = identifierWord + character
+                continue
+
             glyph = self.find_glyph(character)
+
+            if character == "%" and producingIdentiferWord:
+                identifierWord = identifierWord + "%"
+                print(f"Identfier word produced {identifierWord}")
+                producingIdentiferWord = False
+                glyph = self.find_glyph(identifierWord)
+                identifierWord = ""
+
 
             if glyph is None:
                 cursor_x += (
